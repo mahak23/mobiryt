@@ -1,13 +1,12 @@
-const { User } = require('./models/userModel');
-const { Login } = require('./models/loginModel');
-const validator = require('./userValidator');
 const bcrypt = require('bcrypt');
-const errorHandler = require('../../libs/errorHandler');
-const { sequelize } = require("../../dbConnection");
+const { sequelize } = require("../../../dbConnection");
+const { User } = require('../models/userModel');
+const { Login } = require('../models/loginModel');
+const errorHandler = require('../../../libs/errorHandler');
+const validator = require('../validators/userValidator');
 const saltRounds = 10;
 
-class UserController {
-
+class RegisterController {
     /**
      * Create User
      * @param {*} data 
@@ -44,7 +43,7 @@ class UserController {
                 mobile: data.mobile,
                 defaultTimeZone: data.defaultTimeZone,
                 isVerified: 0,
-                isFirstTimeLoggedIn: 0
+                isFirstTimeLoggedIn: 1
             };
             const user = await User.create(userData, { transaction: t });
 
@@ -88,6 +87,11 @@ class UserController {
         }
     }
 
+    /**
+     * Common function to check exisiting users
+     * @param {*} email 
+     * @returns 
+     */
     static async checkExistingUser(email) {
         // check if user already exists
         const existingUser = await User.findOne({
@@ -122,4 +126,4 @@ class UserController {
     }
 }
 
-module.exports = UserController;
+module.exports = RegisterController

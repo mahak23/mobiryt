@@ -1,5 +1,6 @@
 const { DataTypes, Model } = require('sequelize');
 const { sequelize } = require("../../../dbConnection");
+const { Membership } = require('./membershipModel');
 
 class User extends Model { };
 
@@ -108,7 +109,6 @@ User.init({
     updatedAt: 'updatedOn',
     createdAt: 'createdOn'
 });
-
 
 User.sync({}).then(() => { });
 

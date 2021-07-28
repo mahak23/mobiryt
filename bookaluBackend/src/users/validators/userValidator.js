@@ -37,7 +37,21 @@ async function checkEmail(data) {
     return schema.validateAsync(data);
 }
 
+/**
+ * Login
+ * @param {*} data 
+ * @returns 
+ */
+async function login(data) {
+    const schema = Joi.object({
+        username: Joi.string().required().min(1).max(500),
+        password: Joi.string().required().min(8).max(30),
+    });
+    return schema.validateAsync(data);
+}
+
 module.exports = {
     addUser,
-    checkEmail
+    checkEmail,
+    login
 };
