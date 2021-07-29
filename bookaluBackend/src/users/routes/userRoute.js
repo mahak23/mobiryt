@@ -33,4 +33,26 @@ router.post('/login', async (req, res, next) => {
     }
 });
 
+// Verify User account
+router.get('/verifyuser/:token', async (req, res, next) => {
+    try {
+        const result = await RegisterController.verifyUser(req.params.token);
+        res.status(result.status).send(result.data);
+    } catch (error) {
+        console.log(error);
+        res.status(error.status || 400).send(error.data);
+    }
+});
+
+
+// Temp
+router.post('/seed', async (req, res, next) => {
+    try {
+        const result = await RegisterController.tempData(req.body);
+        res.status(result.status).send(result.data);
+    } catch (error) {
+        res.status(error.status || 400).send(error.data);
+    }
+});
+
 module.exports = router;

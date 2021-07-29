@@ -1,5 +1,7 @@
 const { DataTypes, Model } = require('sequelize');
 const { sequelize } = require("../../../dbConnection");
+const { Account } = require('./accountModel');
+const { Login } = require('./loginModel');
 const { Membership } = require('./membershipModel');
 
 class User extends Model { };
@@ -111,6 +113,8 @@ User.init({
 });
 
 User.sync({}).then(() => { });
+User.belongsToMany(Account, { through: Membership });
+User.hasOne(Login);
 
 module.exports = {
     User,

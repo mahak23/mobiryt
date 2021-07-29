@@ -12,4 +12,14 @@ router.get('/', async (req, res, next) => {
     }
 });
 
+// Update User Information
+router.patch('/', async (req, res, next) => {
+    try {
+        const result = await UserController.updateUserInfo(req.user, req.body);
+        res.status(result.status).send(result.data);
+    } catch (error) {
+        res.status(error.status || 400).send(error.data);
+    }
+});
+
 module.exports = router;

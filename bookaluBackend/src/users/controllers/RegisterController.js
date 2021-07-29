@@ -1,9 +1,12 @@
 const bcrypt = require('bcrypt');
 const { sequelize } = require("../../../dbConnection");
 const { User } = require('../models/userModel');
+const { Account } = require('../models/accountModel');
 const { Login } = require('../models/loginModel');
 const errorHandler = require('../../../libs/errorHandler');
 const validator = require('../validators/userValidator');
+const { Membership } = require('../models/membershipModel');
+const AESEncryption = require('../../../libs/crypto');
 const saltRounds = 10;
 
 class RegisterController {
@@ -58,16 +61,28 @@ class RegisterController {
             };
 
             await Login.create(loginData, { transaction: t });
+
+            // Save user role data
+            await Membership.create({
+                userId: user.id,
+                accountId: 1
+            }, { transaction: t });
+
+            // Verification Code
+            let verificationCode = AESEncryption.encrypt(JSON.stringify({ userId: user.id }));
+
+            // Send email
+
             await t.commit();
 
             return {
                 status: 201,
                 data: {
+                    verificationCode: verificationCode,
                     message: "Congratulations! Your account is created. Please check your email and verify your account.",
                 },
             };
         } catch (err) {
-            console.log(err)
             await t.rollback();
             return errorHandler.handleError(err);
         }
@@ -84,6 +99,44 @@ class RegisterController {
             return result;
         } catch (err) {
             return errorHandler.handleError(err);
+        }
+    }
+
+    /**
+     * Verify the user
+     * @param {*} body 
+     */
+    static async verifyUser(body) {
+        try {
+            let data = JSON.parse(AESEncryption.decrypt(body));
+
+            // find the user
+            let user = await User.findOne({
+                where: {
+                    id: data.userId,
+                    isVerified: 0
+                }
+            });
+
+            if (!user) {
+                return {
+                    status: 400,
+                    data: {
+                        message: "User does not exists!"
+                    }
+                };
+            }
+
+            user.isVerified = 1;
+            await user.save();
+            return {
+                status: 200,
+                data: {
+                    message: "Your account has been verified successfully!"
+                }
+            };
+        } catch (error) {
+            return errorHandler.handleError(error);
         }
     }
 
@@ -123,6 +176,25 @@ class RegisterController {
                 message: "User is registered, but has not verified!"
             }
         }
+    }
+
+    static async tempData() {
+        await Account.create({
+            name: 'clientuser',
+            description: 'Frontend User',
+        });
+
+        await Account.create({
+            name: 'businessuser',
+            description: 'Business User',
+        });
+
+        return {
+            status: 200,
+            data: {
+                message: "Account inserted successfully!"
+            }
+        };
     }
 }
 

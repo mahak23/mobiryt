@@ -50,8 +50,32 @@ async function login(data) {
     return schema.validateAsync(data);
 }
 
+/**
+ * Update User Info
+ * @param {*} data 
+ * @returns 
+ */
+async function updateUserInfo(data) {
+    const schema = Joi.object({
+        firstName: Joi.string().required().allow('').min(1).max(50),
+        lastName: Joi.string().required().allow('').min(1).max(50),
+        emailId: Joi.string().required().min(1).max(500),
+        addressLine1: Joi.string().required().allow(''),
+        addressLine2: Joi.string().required().allow(''),
+        town: Joi.string().required().allow(''),
+        postCode: Joi.string().required().allow('').min(1).max(50),
+        county: Joi.string().required().allow('').min(1).max(2000),
+        country: Joi.string().required().allow('').min(1).max(50),
+        telephone: Joi.string().required().allow('').min(1).max(50),
+        mobile: Joi.string().required().allow('').min(1).max(50),
+    });
+    return schema.validateAsync(data);
+}
+
+
 module.exports = {
     addUser,
     checkEmail,
-    login
+    login,
+    updateUserInfo,
 };

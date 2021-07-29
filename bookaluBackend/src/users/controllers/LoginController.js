@@ -15,7 +15,11 @@ class LoginController {
     static async login(body) {
         try {
             const data = await validator.login(body);
-            const user = await Login.findOne({ loginName: data.username });
+            const user = await Login.findOne({
+                where: {
+                    loginName: data.username
+                }
+            });
 
             // Username password matching
             if (!user || !bcrypt.compareSync(data.password, user.loginPassword)) {
@@ -27,7 +31,14 @@ class LoginController {
                 };
             }
 
+            // Load the user details
             const userDetails = await User.findByPk(user.userId);
+
+            // Load the user roles
+            const accounts = await userDetails.getAccounts();
+            const roles = accounts.map((role) => {
+                return role.name;
+            });
 
             // Verified user?
             if (!userDetails.isVerified) {
@@ -50,6 +61,7 @@ class LoginController {
                 status: 200,
                 data: {
                     accessToken: token,
+                    roles: roles,
                     isFirstTimeLoggedIn: !userDetails.isFirstTimeLoggedIn
                 }
             };
@@ -57,7 +69,6 @@ class LoginController {
             return errorHandler.handleError(err);
         }
     }
-
 }
 
 module.exports = LoginController

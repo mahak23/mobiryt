@@ -1,10 +1,15 @@
+const { User } = require('../models/userModel');
+const { sequelize } = require("../../../dbConnection");
+const errorHandler = require('../../../libs/errorHandler');
+const validator = require('../validators/userValidator');
+
 class UserController {
+
     /**
      * Get the user informatiom
      * @param {*} user 
      */
-    static getUserInfo(user) {
-        console.log(user);
+    static async getUserInfo(user) {
         return {
             status: 200,
             data: {
@@ -24,6 +29,45 @@ class UserController {
                 }
             }
         };
+    }
+
+    /**
+     * Update User informatiom
+     * @param {*} user 
+     */
+    static async updateUserInfo(user, body) {
+        const t = await sequelize.transaction();
+        try {
+            const data = await validator.updateUserInfo(body);
+
+            // If email is changed update login information
+            if (user.emailId != data.emailId) {
+                let loginData = await user.getLogin();
+                console.log(loginData.toJSON());
+                loginData.loginName = data.emailId;
+                await loginData.save({ transaction: t });
+            }
+
+            // update the user
+            await User.update(data, {
+                where: {
+                    id: user.id
+                },
+                transaction: t
+            });
+
+            await t.commit();
+
+            return {
+                status: 200,
+                data: {
+                    message: "User information has been updated successfully!"
+                }
+            };
+        } catch (error) {
+            await t.rollback();
+            return errorHandler.handleError(err);
+        }
     }
 }
 
